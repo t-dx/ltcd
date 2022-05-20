@@ -12,6 +12,7 @@ require (
 	github.com/jrick/logrotate v1.0.0
 	github.com/ltcsuite/ltcd/btcec/v2 v2.1.0
 	github.com/ltcsuite/ltcd/ltcutil v1.1.0
+	github.com/test-go/testify v1.1.4
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a
 	gotest.tools v2.2.0+incompatible
 )
@@ -26,9 +27,12 @@ require (
 	github.com/onsi/ginkgo v1.15.0 // indirect
 	github.com/onsi/gomega v1.10.5 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/stretchr/testify v1.7.1 // indirect
 	golang.org/x/net v0.0.0-20210521195947-fe42d452be8f // indirect
 	golang.org/x/sys v0.0.0-20210521203332-0cec03c779c1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
 
 replace github.com/ltcsuite/ltcd/ltcutil => ./ltcutil

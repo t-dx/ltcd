@@ -8,7 +8,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/ltcsuite/ltcd/chaincfg/chainhash"
@@ -567,7 +566,7 @@ func (msg *MsgTx) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error
 
 	// If the transaction's flag byte isn't 0x00 at this point, then one or
 	// more of its inputs has accompanying witness data.
-	if hasWitness {
+	if hasWitness && !hasMweb {
 		for _, txin := range msg.TxIn {
 			// For each input, the witness is encoded as a stack
 			// with one or more items. Therefore, we first read a
@@ -609,17 +608,18 @@ func (msg *MsgTx) BtcDecode(r io.Reader, pver uint32, enc MessageEncoding) error
 		//   github.com/litecoin-project/litecoin start encode mweb tx into hex from version v0.21.2.
 		//   https://github.com/litecoin-project/litecoin/blob/v0.21.2/src/primitives/transaction.h#L365-L367
 		//   To make this golang lib work with C++ server, let's skip the mweb tx section for now.
-		data, err := ioutil.ReadAll(r)
-		if err != nil {
-			returnScriptBuffers()
-			return err
-		}
-		s := len(data)
-		if s < 4 {
-			returnScriptBuffers()
-			return messageError("MsgTx.BtcDecode", "no enough data to decode locktime")
-		}
-		msg.LockTime = littleEndian.Uint32(data[s-4:])
+		//data, err := ioutil.ReadAll(r)
+		//if err != nil {
+		//	returnScriptBuffers()
+		//	return err
+		//}
+		//s := len(data)
+		//if s < 4 {
+		//	returnScriptBuffers()
+		//	return messageError("MsgTx.BtcDecode", "no enough data to decode locktime")
+		//}
+		//msg.LockTime = littleEndian.Uint32(data[s-4:])
+		msg.LockTime = 0
 	} else {
 		msg.LockTime, err = binarySerializer.Uint32(r, littleEndian)
 		if err != nil {

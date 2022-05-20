@@ -365,6 +365,19 @@ func isWitnessPubKeyHashScript(script []byte) bool {
 	return extractWitnessPubKeyHash(script) != nil
 }
 
+func extractWitnessScriptHashWithVersion(script []byte) (byte,[]byte) {
+	if len(script) == 34 &&
+		(script[0] == OP_0 || ( script[0] >= OP_2 && script[0] <= OP_16)) &&
+		script[1] == OP_DATA_32 {
+		var version byte = 0
+		if script[0] >= OP_2 {
+			version = script[0]-OP_2+2
+		}
+		return version,script[2:34]
+	}
+	return 0, nil
+}
+
 // extractWitnessScriptHash extracts the witness script hash from the passed
 // script if it is standard pay-to-witness-script-hash script. It will return
 // nil otherwise.
@@ -955,10 +968,9 @@ func ExtractPkScriptAddrs(pkScript []byte, chainParams *chaincfg.Params) (Script
 		}
 		return WitnessV0PubKeyHashTy, addrs, 1, nil
 	}
-
-	if hash := extractWitnessScriptHash(pkScript); hash != nil {
+	if version, hash := extractWitnessScriptHashWithVersion(pkScript); hash != nil {
 		var addrs []ltcutil.Address
-		addr, err := ltcutil.NewAddressWitnessScriptHash(hash, chainParams)
+		addr, err := ltcutil.NewAddressWitnessScriptHashWithVersion(hash, chainParams, version)
 		if err == nil {
 			addrs = append(addrs, addr)
 		}

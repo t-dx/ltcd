@@ -84,10 +84,12 @@ func encodeSegWitAddress(hrp string, witnessVersion byte, witnessProgram []byte)
 	switch witnessVersion {
 	case 0:
 		bech, err = bech32.Encode(hrp, combined)
-
 	case 1:
 		bech, err = bech32.EncodeM(hrp, combined)
-
+	case 8:
+		bech, err = bech32.Encode(hrp, combined)
+	case 9:
+		bech, err = bech32.Encode(hrp, combined)
 	default:
 		return "", fmt.Errorf("unsupported witness version %d",
 			witnessVersion)
@@ -163,7 +165,7 @@ func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 			// We currently only support P2WPKH and P2WSH, which is
 			// witness version 0 and P2TR which is witness version
 			// 1.
-			if witnessVer != 0 && witnessVer != 1 {
+			if witnessVer != 0 && witnessVer != 1 && witnessVer != 8 && witnessVer != 9 {
 				return nil, UnsupportedWitnessVerError(witnessVer)
 			}
 
@@ -176,9 +178,9 @@ func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 			case 32:
 				if witnessVer == 1 {
 					return newAddressTaproot(hrp, witnessProg)
+				} else {
+					return newAddressWitnessScriptHash(hrp, witnessProg, witnessVer)
 				}
-
-				return newAddressWitnessScriptHash(hrp, witnessProg)
 			default:
 				return nil, UnsupportedWitnessProgLenError(len(witnessProg))
 			}
@@ -643,17 +645,19 @@ type AddressWitnessScriptHash struct {
 }
 
 // NewAddressWitnessScriptHash returns a new AddressWitnessPubKeyHash.
-func NewAddressWitnessScriptHash(witnessProg []byte,
-	net *chaincfg.Params) (*AddressWitnessScriptHash, error) {
+func NewAddressWitnessScriptHash(witnessProg []byte, net *chaincfg.Params) (*AddressWitnessScriptHash, error) {
+	return newAddressWitnessScriptHash(net.Bech32HRPSegwit, witnessProg, 0)
+}
 
-	return newAddressWitnessScriptHash(net.Bech32HRPSegwit, witnessProg)
+// NewAddressWitnessScriptHash returns a new AddressWitnessPubKeyHash.
+func NewAddressWitnessScriptHashWithVersion(witnessProg []byte, net *chaincfg.Params, version byte) (*AddressWitnessScriptHash, error) {
+	return newAddressWitnessScriptHash(net.Bech32HRPSegwit, witnessProg, version)
 }
 
 // newAddressWitnessScriptHash is an internal helper function to create an
 // AddressWitnessScriptHash with a known human-readable part, rather than
 // looking it up through its parameters.
-func newAddressWitnessScriptHash(hrp string,
-	witnessProg []byte) (*AddressWitnessScriptHash, error) {
+func newAddressWitnessScriptHash(hrp string, witnessProg []byte, witnessVersion byte) (*AddressWitnessScriptHash, error) {
 
 	// Check for valid program length for witness version 0, which is 32
 	// for P2WSH.
@@ -665,7 +669,7 @@ func newAddressWitnessScriptHash(hrp string,
 	addr := &AddressWitnessScriptHash{
 		AddressSegWit{
 			hrp:            strings.ToLower(hrp),
-			witnessVersion: 0x00,
+			witnessVersion: witnessVersion,
 			witnessProgram: witnessProg,
 		},
 	}
