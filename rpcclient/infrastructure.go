@@ -20,7 +20,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -1557,10 +1556,14 @@ const (
 func parseBitcoindVersion(version string) BackendVersion {
 	// Trim the version of its prefix and suffix to determine the
 	// appropriate version number.
-	version = strings.TrimPrefix(
-		strings.TrimSuffix(version, bitcoindVersionSuffix),
-		bitcoindVersionPrefix,
-	)
+	// find the first ":" and trim everything before that
+	var i int
+	for i = 0; i < len(version)-1; i++ {
+		if version[i] == ':' {
+			break
+		}
+	}
+	version = version[i+1:]
 	switch {
 	case version < bitcoind19Str:
 		return BitcoindPre19
