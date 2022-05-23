@@ -1543,10 +1543,6 @@ const (
 	// bitcoind19Str is the string representation of bitcoind v0.19.0.
 	bitcoind19Str = "0.19.0"
 
-	// bitcoindVersionPrefix specifies the prefix included in every bitcoind
-	// version exposed through GetNetworkInfo.
-	bitcoindVersionPrefix = "/Satoshi:"
-
 	// bitcoindVersionSuffix specifies the suffix included in every bitcoind
 	// version exposed through GetNetworkInfo.
 	bitcoindVersionSuffix = "/"
@@ -1555,12 +1551,16 @@ const (
 // parseBitcoindVersion parses the bitcoind version from its string
 // representation.
 func parseBitcoindVersion(version string) BackendVersion {
-	// Trim the version of its prefix and suffix to determine the
-	// appropriate version number.
-	version = strings.TrimPrefix(
-		strings.TrimSuffix(version, bitcoindVersionSuffix),
-		bitcoindVersionPrefix,
-	)
+	// Find the first ":" and trim everything before that
+	// Allows to support /Satoshi and /LitecoinCore
+	var i int
+	for i = 0; i < len(version)-1; i++ {
+		if version[i] == ':' {
+			break
+		}
+	}
+	version = version[i+1:]
+	version = strings.TrimSuffix(version, bitcoindVersionSuffix)
 	switch {
 	case version < bitcoind19Str:
 		return BitcoindPre19
